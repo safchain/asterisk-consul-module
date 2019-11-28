@@ -1,27 +1,22 @@
+rabbitmq:
+  image: rabbitmq
+  expose:
+    - 15672
 asterisk:
-  build: .
+  image: safchain/asterisk-consul-amqp
   links:
     - consul
+    - rabbitmq
   expose:
     - 8888
 consul:
-  image: progrium/consul
+  image: consul
   ports:
     - "8500:8500"
-  command: -server -bootstrap -ui-dir /ui
-lb:
-  build: ./contribs/haproxy/
-  dockerfile: Dockerfile
-  links:
-    - consul
-  ports:
-    - "8888:8888"
-    - "1936:1936"
-  expose:
-    - "8888"
-    - "1936"
+  environment:
+    - CONSUL_BIND_INTERFACE=eth0
 kamailio:
-  build: ./contribs/kamailio
+  image: kamailio/kamailio:5.3.1-buster
   links:
     - consul
     - asterisk
@@ -29,8 +24,3 @@ kamailio:
     - "5060:5060/udp"
   expose:
     - 5060/udp
-phone:
-  build: ./contribs/linphone
-  links:
-    - asterisk
-    - kamailio
